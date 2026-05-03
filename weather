@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Weather App</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #e3f2fd;
+      display: flex;
+      justify-content: center;
+      padding-top: 80px;
+    }
+
+    .app {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 300px;
+      text-align: center;
+    }
+
+    input {
+      padding: 8px;
+      width: 70%;
+    }
+
+    button {
+      padding: 8px;
+      cursor: pointer;
+    }
+
+    .result {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+  <h2>Погода</h2>
+
+  <input id="cityInput" placeholder="Город">
+  <button onclick="getWeather()">OK</button>
+
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+async function getWeather() {
+  let city = document.getElementById("cityInput").value;
+
+  if (city === "") return;
+
+  let url = "https://api.open-meteo.com/v1/forecast?latitude=55&longitude=37&current_weather=true";
+
+  let response = await fetch(url);
+  let data = await response.json();
+
+  document.getElementById("result").innerHTML =
+    "Температура: " + data.current_weather.temperature + "°C";
+}
+</script>
+
+</body>
+</html>
