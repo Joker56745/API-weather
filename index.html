@@ -1,68 +1,30 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Weather App</title>
-
-  <style>
-    body {
-      font-family: Arial;
-      background: #e3f2fd;
-      display: flex;
-      justify-content: center;
-      padding-top: 80px;
-    }
-
-    .app {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      width: 300px;
-      text-align: center;
-    }
-
-    input {
-      padding: 8px;
-      width: 70%;
-    }
-
-    button {
-      padding: 8px;
-      cursor: pointer;
-    }
-
-    .result {
-      margin-top: 20px;
-    }
-  </style>
-</head>
-
-<body>
-
-<div class="app">
-  <h2>Погода</h2>
-
-  <input id="cityInput" placeholder="Город">
-  <button onclick="getWeather()">OK</button>
-
-  <div class="result" id="result"></div>
-</div>
-
 <script>
 async function getWeather() {
   let city = document.getElementById("cityInput").value;
 
   if (city === "") return;
 
-  let url = "https://api.open-meteo.com/v1/forecast?latitude=55&longitude=37&current_weather=true";
+  // 1. получаем координаты города
+  let geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${city}`;
+  let geoResponse = await fetch(geoUrl);
+  let geoData = await geoResponse.json();
 
-  let response = await fetch(url);
-  let data = await response.json();
+  if (!geoData.results) {
+    document.getElementById("result").innerText = "Город не найден";
+    return;
+  }
+
+  let lat = geoData.results[0].latitude;
+  let lon = geoData.results[0].longitude;
+
+  // 2. получаем погоду по координатам
+  let weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+  let weatherResponse = await fetch(weatherUrl);
+  let weatherData = await weatherResponse.json();
+
+  let temp = weatherData.current_weather.temperature;
 
   document.getElementById("result").innerHTML =
-    "Температура: " + data.current_weather.temperature + "°C";
+    `Погода в ${city}: ${temp}°C`;
 }
 </script>
-
-</body>
-</html>
