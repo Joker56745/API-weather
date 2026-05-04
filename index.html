@@ -1,84 +1,110 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Погода</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Weather</title>
 
 <style>
 body {
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
-  color: white;
-  text-align: center;
   margin: 0;
-  padding: 20px;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: white;
   min-height: 100vh;
+  background: radial-gradient(circle at top, #1b2a4a, #0b1020);
+  overflow-x: hidden;
 }
 
+/* 🌫 glass card */
+.glass {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  padding: 20px;
+}
+
+/* layout */
 .container {
-  max-width: 800px;
-  margin: 40px auto;
+  max-width: 900px;
+  margin: auto;
+  padding: 30px;
 }
 
+/* input */
 input {
+  width: 70%;
   padding: 14px;
-  width: 280px;
-  font-size: 18px;
-  border: none;
   border-radius: 50px;
+  border: none;
   outline: none;
+  font-size: 16px;
 }
 
 button {
-  padding: 14px 24px;
-  font-size: 18px;
-  background: #ff9800;
-  color: white;
-  border: none;
+  padding: 14px 20px;
   border-radius: 50px;
+  border: none;
+  background: #4f8cff;
+  color: white;
   cursor: pointer;
 }
 
-#result {
-  margin-top: 30px;
-  background: rgba(255,255,255,0.1);
-  padding: 25px;
-  border-radius: 16px;
-  backdrop-filter: blur(10px);
+/* main temp */
+.big-temp {
+  font-size: 72px;
+  font-weight: 200;
 }
 
-.weather-icon {
-  font-size: 70px;
-  margin: 10px 0;
+/* city */
+.city {
+  font-size: 26px;
+  opacity: 0.9;
 }
 
-.forecast {
+/* wind row */
+.row {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 15px;
+  justify-content: space-between;
+  margin-top: 10px;
+  opacity: 0.85;
+}
+
+/* forecast Apple-style list */
+.forecast {
+  margin-top: 25px;
 }
 
 .day {
-  background: rgba(255,255,255,0.15);
-  padding: 12px 10px;
-  border-radius: 12px;
-  width: 100px;
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
-.day-name {
-  font-size: 15px;
-  margin-bottom: 8px;
+.day:last-child {
+  border-bottom: none;
 }
 
-.toggle {
-  cursor: pointer;
-  margin-top: 20px;
-  user-select: none;
-  font-weight: bold;
+.left {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* icon */
+.icon {
+  font-size: 22px;
+}
+
+/* fade animation */
+.fade {
+  animation: fade 0.5s ease;
+}
+
+@keyframes fade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>
 </head>
@@ -86,127 +112,97 @@ button {
 <body>
 
 <div class="container">
-  <h1>☀️ Погода</h1>
-  <input id="cityInput" placeholder="Введите город" type="text">
-  <button onclick="getWeather()">Показать</button>
 
-  <div id="result"></div>
+  <h2>🌤 Weather</h2>
+
+  <input id="cityInput" placeholder="Введите город">
+  <button onclick="getWeather()">Поиск</button>
+
+  <div id="result" style="margin-top:20px;"></div>
+
 </div>
 
 <script>
 
-// 🌬 направление ветра
-function getWindDirection(deg) {
-  const dirs = ["⬆️ N", "↗️ NE", "➡️ E", "↘️ SE", "⬇️ S", "↙️ SW", "⬅️ W", "↖️ NW"];
-  return dirs[Math.round(deg / 45) % 8];
-}
-
-// 🌤 иконки
-const weatherIcons = {
-  0: "☀️", 1: "🌤️", 2: "⛅", 3: "☁️",
-  45: "🌫️", 48: "🌫️",
-  51: "🌧️", 53: "🌧️", 55: "🌧️",
-  61: "🌦️", 63: "🌧️", 65: "🌧️",
-  71: "❄️", 73: "❄️", 75: "❄️",
-  80: "🌦️", 81: "🌧️", 82: "⛈️",
-  95: "⛈️", 96: "⛈️", 99: "⛈️"
+const icons = {
+  0:"☀️",1:"🌤️",2:"⛅",3:"☁️",
+  45:"🌫️",48:"🌫️",
+  51:"🌧️",61:"🌦️",63:"🌧️",65:"🌧️",
+  71:"❄️",80:"🌦️",81:"🌧️",95:"⛈️"
 };
 
-let forecastOpen = false;
+function windDir(deg){
+  const d=["N","NE","E","SE","S","SW","W","NW"];
+  return d[Math.round(deg/45)%8];
+}
 
-async function getWeather() {
-  const city = document.getElementById("cityInput").value.trim();
+async function getWeather(){
+
+  const city = document.getElementById("cityInput").value;
   const result = document.getElementById("result");
 
-  if (!city) {
-    result.innerHTML = "Введите город";
+  result.innerHTML = "Loading...";
+
+  const geo = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1`);
+  const g = await geo.json();
+
+  if(!g.results){
+    result.innerHTML = "Not found";
     return;
   }
 
-  result.innerHTML = "Загрузка...";
+  const {latitude, longitude, name, country} = g.results[0];
 
-  try {
-    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1`);
-    const geo = await geoRes.json();
+  const w = await fetch(
+    `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}`+
+    `&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min`+
+    `&timezone=auto`
+  );
 
-    if (!geo.results) {
-      result.innerHTML = "Город не найден";
-      return;
-    }
+  const data = await w.json();
 
-    const { latitude, longitude, name, country } = geo.results[0];
+  const c = data.current_weather;
+  const d = data.daily;
 
-    const weatherRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
-      `&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min` +
-      `&wind_speed_unit=ms&timezone=auto`
-    );
+  let forecast="";
 
-    const data = await weatherRes.json();
-
-    const current = data.current_weather;
-    const daily = data.daily;
-
-    const icon = weatherIcons[current.weathercode] || "🌥️";
-
-    let forecastHTML = "";
-
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(daily.time[i]);
-      const day = date.toLocaleDateString("ru-RU", { weekday: "short" });
-
-      forecastHTML += `
-        <div class="day">
-          <div class="day-name">${day}</div>
-          <div style="font-size:40px">${weatherIcons[daily.weathercode[i]] || "🌥️"}</div>
-          <div><b>${daily.temperature_2m_max[i]}°</b></div>
-          <div style="opacity:0.7">${daily.temperature_2m_min[i]}°</div>
+  for(let i=0;i<7;i++){
+    forecast += `
+      <div class="day">
+        <div class="left">
+          <div class="icon">${icons[d.weathercode[i]]||"🌥️"}</div>
+          <div>${new Date(d.time[i]).toLocaleDateString("ru",{weekday:"short"})}</div>
         </div>
-      `;
-    }
-
-    result.innerHTML = `
-      <h2>${name}, ${country}</h2>
-
-      <div class="weather-icon">${icon}</div>
-
-      <h1 style="font-size:50px">${current.temperature}°C</h1>
-
-      <p>
-        <strong>Ветер:</strong> ${current.windspeed} м/с 
-        <span style="opacity:0.8">(${getWindDirection(current.winddirection)})</span>
-      </p>
-
-      <div class="toggle" onclick="toggleForecast()">
-        📅 Прогноз на 7 дней (нажми)
+        <div>
+          ${d.temperature_2m_min[i]}° / ${d.temperature_2m_max[i]}°
+        </div>
       </div>
-
-      <div id="forecast" style="display:none" class="forecast">
-        ${forecastHTML}
-      </div>
-
-      <small style="display:block;margin-top:15px;opacity:0.6">
-        Обновлено: ${new Date().toLocaleTimeString()}
-      </small>
     `;
-
-    forecastOpen = false;
-
-  } catch (e) {
-    result.innerHTML = "Ошибка загрузки";
   }
+
+  result.innerHTML = `
+    <div class="glass fade">
+
+      <div class="city">${name}, ${country}</div>
+
+      <div class="big-temp">${c.temperature}°</div>
+
+      <div class="row">
+        <div>Ветер: ${c.windspeed} м/с</div>
+        <div>${windDir(c.winddirection)}</div>
+      </div>
+
+    </div>
+
+    <div class="glass forecast fade">
+      ${forecast}
+    </div>
+  `;
 }
 
-function toggleForecast() {
-  const el = document.getElementById("forecast");
-  if (!el) return;
-
-  forecastOpen = !forecastOpen;
-  el.style.display = forecastOpen ? "flex" : "none";
-}
-
-document.getElementById("cityInput").addEventListener("keypress", e => {
-  if (e.key === "Enter") getWeather();
+document.getElementById("cityInput")
+.addEventListener("keypress",(e)=>{
+  if(e.key==="Enter") getWeather();
 });
 
 </script>
