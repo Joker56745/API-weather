@@ -11,35 +11,38 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
   color: white;
   min-height: 100vh;
-  background: radial-gradient(circle at top, #1b2a4a, #0b1020);
-
-  /* FIX: идеальный центр */
   display: flex;
   justify-content: center;
   align-items: center;
+  transition: 0.6s ease;
 }
+
+/* 🌈 backgrounds */
+.sun { background: radial-gradient(circle at top, #4facfe, #00f2fe); }
+.cloud { background: radial-gradient(circle at top, #5f6c7b, #1c2541); }
+.rain { background: radial-gradient(circle at top, #2b5876, #1b1f3b); }
+.snow { background: radial-gradient(circle at top, #e0eafc, #cfdef3); }
 
 /* container */
 .container {
   width: 100%;
-  max-width: 700px;
+  max-width: 750px;
   text-align: center;
   padding: 20px;
 }
 
 /* title */
 .title {
-  font-size: 48px;
+  font-size: 52px;
   font-weight: 200;
   margin-bottom: 25px;
-  opacity: 0.9;
+  letter-spacing: 2px;
 }
 
-/* FIX: идеальный search center */
-.search-box {
+/* search */
+.search {
   display: flex;
   justify-content: center;
-  align-items: center;
   gap: 10px;
   margin-bottom: 25px;
 }
@@ -49,32 +52,37 @@ input {
   padding: 14px;
   border-radius: 30px;
   border: none;
-  outline: none;
   text-align: center;
-  font-size: 16px;
+  outline: none;
 }
 
 button {
   padding: 14px 18px;
   border-radius: 30px;
   border: none;
-  background: #4f8cff;
-  color: white;
+  background: #ffffff;
+  color: black;
   cursor: pointer;
 }
 
-/* glass */
+/* glass cards */
 .card {
   background: rgba(255,255,255,0.12);
-  backdrop-filter: blur(20px);
-  border-radius: 22px;
+  backdrop-filter: blur(25px);
+  border-radius: 24px;
   padding: 20px;
-  margin-top: 20px;
+  margin-top: 18px;
+  animation: fade 0.4s ease;
+}
+
+@keyframes fade {
+  from {opacity: 0; transform: translateY(10px);}
+  to {opacity: 1; transform: translateY(0);}
 }
 
 /* temp */
 .temp {
-  font-size: 72px;
+  font-size: 78px;
   font-weight: 200;
 }
 
@@ -87,14 +95,14 @@ button {
 }
 
 .hour {
-  min-width: 70px;
+  min-width: 75px;
   flex-shrink: 0;
   background: rgba(255,255,255,0.08);
   border-radius: 14px;
   padding: 10px;
 }
 
-/* FIX: forecast grid PERFECT */
+/* forecast */
 .day {
   display: grid;
   grid-template-columns: 50px 1fr 90px;
@@ -112,15 +120,15 @@ button {
 </style>
 </head>
 
-<body>
+<body class="sun">
 
 <div class="container">
 
   <div class="title">Weather</div>
 
-  <div class="search-box">
+  <div class="search">
     <input id="cityInput" placeholder="Search city">
-    <button onclick="getWeather()">Go</button>
+    <button onclick="getWeather()">Search</button>
   </div>
 
   <div id="app"></div>
@@ -135,16 +143,20 @@ const icons = {
   71:"❄️",80:"🌧️",95:"⛈️"
 };
 
-/* FIX: English weekdays */
-function getDayName(dateStr){
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    weekday: "short"
-  });
+function bg(code){
+  if(code === 0) return "sun";
+  if(code <= 3) return "cloud";
+  if(code >= 61) return "rain";
+  return "cloud";
 }
 
 function windDir(deg){
   const d=["N","NE","E","SE","S","SW","W","NW"];
   return d[Math.round(deg/45)%8];
+}
+
+function dayName(date){
+  return new Date(date).toLocaleDateString("en-US",{weekday:"short"});
 }
 
 async function getWeather(){
@@ -166,8 +178,7 @@ async function getWeather(){
 
   const res = await fetch(
     `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}`+
-    `&current_weather=true&hourly=temperature_2m`+
-    `&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto`
+    `&current_weather=true&hourly=temperature_2m&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto`
   );
 
   const data = await res.json();
@@ -176,7 +187,8 @@ async function getWeather(){
   const d = data.daily;
   const h = data.hourly;
 
-  /* hourly */
+  document.body.className = bg(c.weathercode);
+
   let hourlyHTML = "";
   for(let i=0;i<12;i++){
     hourlyHTML += `
@@ -187,13 +199,12 @@ async function getWeather(){
     `;
   }
 
-  /* forecast FIX */
   let daysHTML = "";
   for(let i=0;i<7;i++){
     daysHTML += `
       <div class="day">
         <div class="icon">${icons[d.weathercode[i]]||"🌥️"}</div>
-        <div>${getDayName(d.time[i])}</div>
+        <div>${dayName(d.time[i])}</div>
         <div>${d.temperature_2m_min[i]}° / ${d.temperature_2m_max[i]}°</div>
       </div>
     `;
@@ -212,7 +223,7 @@ async function getWeather(){
     </div>
 
     <div class="card">
-      <h3>7 days</h3>
+      <h3>7-Day Forecast</h3>
       ${daysHTML}
     </div>
   `;
