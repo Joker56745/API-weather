@@ -31,20 +31,34 @@ body {
   padding: 20px;
 }
 
-/* title */
+/* LOGO */
+.logo {
+  font-size: 34px;
+  margin-bottom: 8px;
+  opacity: 0.9;
+}
+
+/* TITLE FIX (чуть влево) */
 .title {
   font-size: 52px;
   font-weight: 200;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
   letter-spacing: 2px;
+  opacity: 0.9;
+
+ 
+  transform: translateX(-6px);
 }
 
-/* search */
+/* SEARCH FIX (идеальный центр + выше визуально) */
 .search {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 10px;
-  margin-bottom: 25px;
+
+  margin-bottom: 30px;
+  margin-top: -5px; 
 }
 
 input {
@@ -123,6 +137,8 @@ button {
 <body class="sun">
 
 <div class="container">
+
+  <div class="logo">☀️</div>
 
   <div class="title">Weather</div>
 
