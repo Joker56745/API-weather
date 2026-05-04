@@ -1,74 +1,107 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Погода</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #1e3c72, #2a5298);
-      color: white;
-      text-align: center;
-      margin: 0;
-      padding: 20px;
-      min-height: 100vh;
-    }
-    .container { max-width: 800px; margin: 40px auto; }
-    input {
-      padding: 14px;
-      width: 280px;
-      font-size: 18px;
-      border: none;
-      border-radius: 50px;
-      outline: none;
-    }
-    button {
-      padding: 14px 24px;
-      font-size: 18px;
-      background: #ff9800;
-      color: white;
-      border: none;
-      border-radius: 50px;
-      cursor: pointer;
-    }
-    #result {
-      margin-top: 30px;
-      background: rgba(255,255,255,0.1);
-      padding: 25px;
-      border-radius: 16px;
-      backdrop-filter: blur(10px);
-    }
-    .weather-icon { font-size: 70px; margin: 10px 0; }
-    .forecast {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-      margin-top: 25px;
-    }
-    .day {
-      background: rgba(255,255,255,0.15);
-      padding: 12px 10px;
-      border-radius: 12px;
-      width: 100px;
-      text-align: center;
-    }
-    .day-name { font-size: 15px; margin-bottom: 8px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Погода</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: white;
+  text-align: center;
+  margin: 0;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 800px;
+  margin: 40px auto;
+}
+
+input {
+  padding: 14px;
+  width: 280px;
+  font-size: 18px;
+  border: none;
+  border-radius: 50px;
+  outline: none;
+}
+
+button {
+  padding: 14px 24px;
+  font-size: 18px;
+  background: #ff9800;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+}
+
+#result {
+  margin-top: 30px;
+  background: rgba(255,255,255,0.1);
+  padding: 25px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.weather-icon {
+  font-size: 70px;
+  margin: 10px 0;
+}
+
+.forecast {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.day {
+  background: rgba(255,255,255,0.15);
+  padding: 12px 10px;
+  border-radius: 12px;
+  width: 100px;
+  text-align: center;
+}
+
+.day-name {
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.toggle {
+  cursor: pointer;
+  margin-top: 20px;
+  user-select: none;
+  font-weight: bold;
+}
+</style>
 </head>
+
 <body>
 
 <div class="container">
   <h1>☀️ Погода</h1>
   <input id="cityInput" placeholder="Введите город" type="text">
-  <button onclick="getWeather()">Показать погоду</button>
-  
+  <button onclick="getWeather()">Показать</button>
+
   <div id="result"></div>
 </div>
 
 <script>
-// Иконки погоды
+
+// 🌬 направление ветра
+function getWindDirection(deg) {
+  const dirs = ["⬆️ N", "↗️ NE", "➡️ E", "↘️ SE", "⬇️ S", "↙️ SW", "⬅️ W", "↖️ NW"];
+  return dirs[Math.round(deg / 45) % 8];
+}
+
+// 🌤 иконки
 const weatherIcons = {
   0: "☀️", 1: "🌤️", 2: "⛅", 3: "☁️",
   45: "🌫️", 48: "🌫️",
@@ -79,85 +112,103 @@ const weatherIcons = {
   95: "⛈️", 96: "⛈️", 99: "⛈️"
 };
 
+let forecastOpen = false;
+
 async function getWeather() {
-  const cityInput = document.getElementById("cityInput");
+  const city = document.getElementById("cityInput").value.trim();
   const result = document.getElementById("result");
-  
-  let city = cityInput.value.trim();
+
   if (!city) {
-    result.innerHTML = "<p style='color: #ff6b6b;'>Введите название города</p>";
+    result.innerHTML = "Введите город";
     return;
   }
 
-  result.innerHTML = "<p>Загрузка...</p>";
+  result.innerHTML = "Загрузка...";
 
   try {
-    // Геокодирование
-    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
-    const geoData = await geoRes.json();
+    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1`);
+    const geo = await geoRes.json();
 
-    if (!geoData.results || geoData.results.length === 0) {
-      result.innerHTML = `<p style='color: #ff6b6b;'>Город "${city}" не найден</p>`;
+    if (!geo.results) {
+      result.innerHTML = "Город не найден";
       return;
     }
 
-    const { latitude, longitude, name, country } = geoData.results[0];
+    const { latitude, longitude, name, country } = geo.results[0];
 
-    // Запрос текущей погоды + прогноз на 7 дней
     const weatherRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?` +
-      `latitude=${latitude}&longitude=${longitude}` +
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
       `&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min` +
       `&wind_speed_unit=ms&timezone=auto`
     );
+
     const data = await weatherRes.json();
 
     const current = data.current_weather;
     const daily = data.daily;
 
-    const currentIcon = weatherIcons[current.weathercode] || "🌥️";
+    const icon = weatherIcons[current.weathercode] || "🌥️";
 
-    let forecastHTML = `<div class="forecast">`;
+    let forecastHTML = "";
+
     for (let i = 0; i < 7; i++) {
       const date = new Date(daily.time[i]);
-      const dayName = date.toLocaleDateString('ru-RU', { weekday: 'short' });
-      const icon = weatherIcons[daily.weathercode[i]] || "🌥️";
+      const day = date.toLocaleDateString("ru-RU", { weekday: "short" });
 
       forecastHTML += `
         <div class="day">
-          <div class="day-name">${dayName}</div>
-          <div style="font-size:40px">${icon}</div>
-          <div><strong>${daily.temperature_2m_max[i]}°</strong></div>
+          <div class="day-name">${day}</div>
+          <div style="font-size:40px">${weatherIcons[daily.weathercode[i]] || "🌥️"}</div>
+          <div><b>${daily.temperature_2m_max[i]}°</b></div>
           <div style="opacity:0.7">${daily.temperature_2m_min[i]}°</div>
         </div>
       `;
     }
-    forecastHTML += `</div>`;
 
     result.innerHTML = `
-      <h2>${name}, ${country || ''}</h2>
-      <div class="weather-icon">${currentIcon}</div>
-      <h1 style="font-size: 52px; margin: 5px 0;">${current.temperature}°C</h1>
-      <p><strong>${weatherIcons[current.weathercode] ? '' : 'Облачно'}</strong></p>
-      
-      <p><strong>Ветер:</strong> ${current.windspeed} м/с</p>
-      
-      <h3 style="margin: 25px 0 15px;">Прогноз на 7 дней</h3>
-      ${forecastHTML}
-      
-      <small>Обновлено: ${new Date().toLocaleTimeString('ru-RU')}</small>
+      <h2>${name}, ${country}</h2>
+
+      <div class="weather-icon">${icon}</div>
+
+      <h1 style="font-size:50px">${current.temperature}°C</h1>
+
+      <p>
+        <strong>Ветер:</strong> ${current.windspeed} м/с 
+        <span style="opacity:0.8">(${getWindDirection(current.winddirection)})</span>
+      </p>
+
+      <div class="toggle" onclick="toggleForecast()">
+        📅 Прогноз на 7 дней (нажми)
+      </div>
+
+      <div id="forecast" style="display:none" class="forecast">
+        ${forecastHTML}
+      </div>
+
+      <small style="display:block;margin-top:15px;opacity:0.6">
+        Обновлено: ${new Date().toLocaleTimeString()}
+      </small>
     `;
 
-  } catch (error) {
-    result.innerHTML = "<p style='color: #ff6b6b;'>Ошибка загрузки данных</p>";
-    console.error(error);
+    forecastOpen = false;
+
+  } catch (e) {
+    result.innerHTML = "Ошибка загрузки";
   }
 }
 
-// Поиск по Enter
+function toggleForecast() {
+  const el = document.getElementById("forecast");
+  if (!el) return;
+
+  forecastOpen = !forecastOpen;
+  el.style.display = forecastOpen ? "flex" : "none";
+}
+
 document.getElementById("cityInput").addEventListener("keypress", e => {
   if (e.key === "Enter") getWeather();
 });
+
 </script>
 
 </body>
