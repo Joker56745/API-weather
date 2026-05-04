@@ -40,6 +40,10 @@
       border-radius: 16px;
       backdrop-filter: blur(10px);
     }
+    .weather-icon {
+      font-size: 80px;
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
@@ -53,6 +57,28 @@
 </div>
 
 <script>
+// Mapping WMO codes → иконка + описание
+const weatherIcons = {
+  0: { icon: "☀️", desc: "Ясно" },
+  1: { icon: "🌤️", desc: "В основном ясно" },
+  2: { icon: "⛅", desc: "Переменная облачность" },
+  3: { icon: "☁️", desc: "Пасмурно" },
+  45: { icon: "🌫️", desc: "Туман" },
+  48: { icon: "🌫️", desc: "Туман с изморозью" },
+  51: { icon: "🌧️", desc: "Лёгкая морось" },
+  53: { icon: "🌧️", desc: "Морось" },
+  55: { icon: "🌧️", desc: "Сильная морось" },
+  61: { icon: "🌧️", desc: "Небольшой дождь" },
+  63: { icon: "🌧️", desc: "Дождь" },
+  65: { icon: "🌧️", desc: "Сильный дождь" },
+  71: { icon: "❄️", desc: "Небольшой снег" },
+  73: { icon: "❄️", desc: "Снег" },
+  75: { icon: "❄️", desc: "Сильный снег" },
+  80: { icon: "🌦️", desc: "Ливень" },
+  95: { icon: "⛈️", desc: "Гроза" },
+  // можно добавить ещё коды
+};
+
 async function getWeather() {
   const cityInput = document.getElementById("cityInput");
   const result = document.getElementById("result");
@@ -76,20 +102,23 @@ async function getWeather() {
 
     const { latitude, longitude, name, country } = geoData.results[0];
 
-    // Важно: wind_speed_unit=ms
     const weatherRes = await fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&wind_speed_unit=ms&timezone=auto`
     );
     const weatherData = await weatherRes.json();
 
     const w = weatherData.current_weather;
+    const code = w.weathercode;
+    const weather = weatherIcons[code] || { icon: "🌥️", desc: "Неизвестно" };
 
     const directions = ["С", "СВ", "В", "ЮВ", "Ю", "ЮЗ", "З", "СЗ"];
     const windDirText = directions[Math.round(w.winddirection / 45) % 8];
 
     result.innerHTML = `
       <h2>${name}, ${country || ''}</h2>
-      <h1 style="font-size: 52px; margin: 10px 0;">${w.temperature}°C</h1>
+      <div class="weather-icon">${weather.icon}</div>
+      <h1 style="font-size: 52px; margin: 5px 0;">${w.temperature}°C</h1>
+      <p><strong>${weather.desc}</strong></p>
       
       <p><strong>Ощущается как:</strong> ${w.temperature}°C</p>
       <p><strong>Ветер:</strong> ${w.windspeed} м/с ${windDirText} (${w.winddirection}°)</p>
@@ -103,7 +132,6 @@ async function getWeather() {
   }
 }
 
-// Enter
 document.getElementById("cityInput").addEventListener("keypress", e => {
   if (e.key === "Enter") getWeather();
 });
