@@ -14,10 +14,7 @@
       padding: 20px;
       min-height: 100vh;
     }
-    .container {
-      max-width: 600px;
-      margin: 40px auto;
-    }
+    .container { max-width: 600px; margin: 40px auto; }
     input {
       padding: 14px;
       width: 280px;
@@ -39,7 +36,7 @@
       margin-top: 30px;
       font-size: 22px;
       background: rgba(255,255,255,0.1);
-      padding: 20px;
+      padding: 25px;
       border-radius: 16px;
       backdrop-filter: blur(10px);
     }
@@ -69,7 +66,6 @@ async function getWeather() {
   result.innerHTML = "<p>Загрузка...</p>";
 
   try {
-    // Получаем координаты
     const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
     const geoData = await geoRes.json();
 
@@ -80,7 +76,7 @@ async function getWeather() {
 
     const { latitude, longitude, name, country } = geoData.results[0];
 
-    // Получаем погоду с ветром в м/с
+    // Важно: wind_speed_unit=ms
     const weatherRes = await fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&wind_speed_unit=ms&timezone=auto`
     );
@@ -88,7 +84,6 @@ async function getWeather() {
 
     const w = weatherData.current_weather;
 
-    // Преобразуем направление ветра в текст (N, NE, E и т.д.)
     const directions = ["С", "СВ", "В", "ЮВ", "Ю", "ЮЗ", "З", "СЗ"];
     const windDirText = directions[Math.round(w.winddirection / 45) % 8];
 
@@ -98,19 +93,18 @@ async function getWeather() {
       
       <p><strong>Ощущается как:</strong> ${w.temperature}°C</p>
       <p><strong>Ветер:</strong> ${w.windspeed} м/с ${windDirText} (${w.winddirection}°)</p>
-      <p><strong>Влажность:</strong> — (Open-Meteo не отдаёт в current_weather)</p>
       
       <small>Обновлено: ${new Date().toLocaleTimeString('ru-RU')}</small>
     `;
 
   } catch (error) {
-    result.innerHTML = "<p style='color: #ff6b6b;'>Ошибка соединения. Проверьте интернет.</p>";
+    result.innerHTML = "<p style='color: #ff6b6b;'>Ошибка соединения</p>";
     console.error(error);
   }
 }
 
-// Поиск по Enter
-document.getElementById("cityInput").addEventListener("keypress", (e) => {
+// Enter
+document.getElementById("cityInput").addEventListener("keypress", e => {
   if (e.key === "Enter") getWeather();
 });
 </script>
