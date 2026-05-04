@@ -69,7 +69,7 @@ async function getWeather() {
   result.innerHTML = "<p>Загрузка...</p>";
 
   try {
-    // 1. Получаем координаты города
+    // Получаем координаты
     const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
     const geoData = await geoRes.json();
 
@@ -80,20 +80,26 @@ async function getWeather() {
 
     const { latitude, longitude, name, country } = geoData.results[0];
 
-    // 2. Получаем погоду
+    // Получаем погоду с ветром в м/с
     const weatherRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&timezone=auto`
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&wind_speed_unit=ms&timezone=auto`
     );
     const weatherData = await weatherRes.json();
 
     const w = weatherData.current_weather;
 
+    // Преобразуем направление ветра в текст (N, NE, E и т.д.)
+    const directions = ["С", "СВ", "В", "ЮВ", "Ю", "ЮЗ", "З", "СЗ"];
+    const windDirText = directions[Math.round(w.winddirection / 45) % 8];
+
     result.innerHTML = `
       <h2>${name}, ${country || ''}</h2>
-      <h1 style="font-size: 48px; margin: 10px 0;">${w.temperature}°C</h1>
-      <p>Ощущается как: ${w.temperature}°C</p>
-      <p>Ветер: ${w.windspeed} км/ч</p>
-      <p>Направление ветра: ${w.winddirection}°</p>
+      <h1 style="font-size: 52px; margin: 10px 0;">${w.temperature}°C</h1>
+      
+      <p><strong>Ощущается как:</strong> ${w.temperature}°C</p>
+      <p><strong>Ветер:</strong> ${w.windspeed} м/с ${windDirText} (${w.winddirection}°)</p>
+      <p><strong>Влажность:</strong> — (Open-Meteo не отдаёт в current_weather)</p>
+      
       <small>Обновлено: ${new Date().toLocaleTimeString('ru-RU')}</small>
     `;
 
