@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,12 +12,14 @@ body {
   color: white;
   min-height: 100vh;
   background: radial-gradient(circle at top, #1b2a4a, #0b1020);
+
+  /* FIX: идеальный центр */
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
 }
 
-/* центрированный контейнер */
+/* container */
 .container {
   width: 100%;
   max-width: 700px;
@@ -25,19 +27,19 @@ body {
   padding: 20px;
 }
 
-/* WEATHER title */
+/* title */
 .title {
   font-size: 48px;
   font-weight: 200;
-  letter-spacing: 2px;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
   opacity: 0.9;
 }
 
-/* search */
+/* FIX: идеальный search center */
 .search-box {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 10px;
   margin-bottom: 25px;
 }
@@ -61,7 +63,7 @@ button {
   cursor: pointer;
 }
 
-/* glass card */
+/* glass */
 .card {
   background: rgba(255,255,255,0.12);
   backdrop-filter: blur(20px);
@@ -70,7 +72,7 @@ button {
   margin-top: 20px;
 }
 
-/* main temp */
+/* temp */
 .temp {
   font-size: 72px;
   font-weight: 200;
@@ -82,7 +84,6 @@ button {
   overflow-x: auto;
   gap: 12px;
   padding: 10px 0;
-  justify-content: flex-start;
 }
 
 .hour {
@@ -93,13 +94,14 @@ button {
   padding: 10px;
 }
 
-/* forecast FIX (ровные колонки) */
+/* FIX: forecast grid PERFECT */
 .day {
   display: grid;
-  grid-template-columns: 40px 1fr auto;
+  grid-template-columns: 50px 1fr 90px;
   align-items: center;
   padding: 10px 0;
   border-bottom: 1px solid rgba(255,255,255,0.15);
+  text-align: left;
 }
 
 .icon {
@@ -132,6 +134,13 @@ const icons = {
   61:"🌧️",63:"🌧️",65:"🌧️",
   71:"❄️",80:"🌧️",95:"⛈️"
 };
+
+/* FIX: English weekdays */
+function getDayName(dateStr){
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    weekday: "short"
+  });
+}
 
 function windDir(deg){
   const d=["N","NE","E","SE","S","SW","W","NW"];
@@ -178,13 +187,13 @@ async function getWeather(){
     `;
   }
 
-  /* forecast */
+  /* forecast FIX */
   let daysHTML = "";
   for(let i=0;i<7;i++){
     daysHTML += `
       <div class="day">
         <div class="icon">${icons[d.weathercode[i]]||"🌥️"}</div>
-        <div>${new Date(d.time[i]).toLocaleDateString("ru",{weekday:"short"})}</div>
+        <div>${getDayName(d.time[i])}</div>
         <div>${d.temperature_2m_min[i]}° / ${d.temperature_2m_max[i]}°</div>
       </div>
     `;
