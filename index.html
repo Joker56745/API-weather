@@ -393,17 +393,47 @@ async function getWeather(){
 
     /* hourly */
 
-    let hourlyHTML = "";
+  let hourlyHTML = "";
 
-    for(let i = 0; i < 12; i++){
+/* current hour */
 
-      hourlyHTML += `
-        <div class="hour">
-          <div>${h.time[i].slice(11,16)}</div>
-          <div>${h.temperature_2m[i]}°</div>
-        </div>
-      `;
-    }
+const now = new Date();
+
+const currentHour = now.getHours();
+
+/* find current index */
+
+let startIndex = h.time.findIndex(t => {
+
+  const hour = new Date(t).getHours();
+
+  return hour === currentHour;
+});
+
+if(startIndex === -1){
+  startIndex = 0;
+}
+
+/* next 10 hours */
+
+for(let i = startIndex; i < startIndex + 10; i++){
+
+  if(!h.time[i]) break;
+
+  hourlyHTML += `
+    <div class="hour">
+
+      <div>
+        ${h.time[i].slice(11,16)}
+      </div>
+
+      <div>
+        ${Math.round(h.temperature_2m[i])}°
+      </div>
+
+    </div>
+  `;
+}
 
     /* forecast */
 
