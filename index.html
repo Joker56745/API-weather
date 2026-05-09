@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
 <title>Weather</title>
 
@@ -176,10 +176,19 @@ button{
   gap:12px;
 
   overflow-x:auto;
+  overflow-y:hidden;
 
   padding:10px 0;
 
   scrollbar-width:none;
+
+  scroll-behavior:smooth;
+
+  cursor:grab;
+}
+
+.hourly:active{
+  cursor:grabbing;
 }
 
 .hourly::-webkit-scrollbar{
@@ -335,7 +344,9 @@ async function getWeather(){
   const app = document.getElementById("app");
 
   if(!city){
+
     app.innerHTML = "Enter city";
+
     return;
   }
 
@@ -402,6 +413,7 @@ async function getWeather(){
 
       daysHTML += `
         <div class="day">
+
           <div class="icon">
             ${icons[d.weathercode[i]] || "🌥️"}
           </div>
@@ -415,6 +427,7 @@ async function getWeather(){
             /
             ${d.temperature_2m_max[i]}°
           </div>
+
         </div>
       `;
     }
@@ -458,12 +471,72 @@ async function getWeather(){
       </div>
     `;
 
+    initHourlyScroll();
+
   }catch(err){
 
     app.innerHTML = "Error loading weather";
 
     console.error(err);
   }
+}
+
+/* horizontal scroll */
+
+function initHourlyScroll(){
+
+  const hourly = document.querySelector(".hourly");
+
+  if(!hourly) return;
+
+  let isDown = false;
+
+  let startX;
+
+  let scrollLeft;
+
+  hourly.addEventListener("mousedown",(e)=>{
+
+    isDown = true;
+
+    startX = e.pageX - hourly.offsetLeft;
+
+    scrollLeft = hourly.scrollLeft;
+  });
+
+  hourly.addEventListener("mouseleave",()=>{
+
+    isDown = false;
+  });
+
+  hourly.addEventListener("mouseup",()=>{
+
+    isDown = false;
+  });
+
+  hourly.addEventListener("mousemove",(e)=>{
+
+    if(!isDown) return;
+
+    e.preventDefault();
+
+    const x = e.pageX - hourly.offsetLeft;
+
+    const walk = (x - startX) * 1.5;
+
+    hourly.scrollLeft = scrollLeft - walk;
+  });
+
+  /* mouse wheel */
+
+  hourly.addEventListener("wheel",(e)=>{
+
+    e.preventDefault();
+
+    hourly.scrollLeft += e.deltaY;
+
+  },{ passive:false });
+
 }
 
 document
