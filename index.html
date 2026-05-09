@@ -6,6 +6,11 @@
 <title>Weather</title>
 
 <style>
+
+*{
+  box-sizing:border-box;
+}
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, sans-serif;
@@ -15,6 +20,7 @@ body {
   justify-content: center;
   align-items: center;
   transition: 0.6s ease;
+  padding: 16px;
 }
 
 /* 🌈 backgrounds */
@@ -27,24 +33,21 @@ body {
 .container {
   width: 100%;
   max-width: 750px;
-  margin: 0 auto;
 
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
 
   text-align: center;
-  padding: 20px;
 }
 
 .logo {
-  font-size: 34px;
+  font-size: clamp(28px, 6vw, 40px);
   margin-bottom: 8px;
 }
 
 .title {
-  font-size: 52px;
+  font-size: clamp(36px, 10vw, 52px);
   font-weight: 200;
   margin-bottom: 18px;
   letter-spacing: 2px;
@@ -58,20 +61,29 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 10px;
 
-  margin-top: 6px;  
+  margin-top: 6px;
   margin-bottom: 25px;
+
+  flex-wrap: wrap;
 }
 
 input {
-  width: 320px;     
-  max-width: 90%;
+  flex: 1;
+  min-width: 0;
+
+  width: 100%;
+  max-width: 420px;
+
   padding: 14px;
 
   border-radius: 30px;
   border: none;
   text-align: center;
   outline: none;
+
+  font-size: 16px;
 }
 
 button {
@@ -81,27 +93,43 @@ button {
   background: #ffffff;
   color: black;
   cursor: pointer;
+  font-size: 15px;
+  white-space: nowrap;
 }
 
 /* glass cards */
 .card {
+  width: 100%;
+
   background: rgba(255,255,255,0.12);
   backdrop-filter: blur(25px);
+
   border-radius: 24px;
   padding: 20px;
   margin-top: 18px;
+
   animation: fade 0.4s ease;
+
+  overflow: hidden;
 }
 
 @keyframes fade {
-  from {opacity: 0; transform: translateY(10px);}
-  to {opacity: 1; transform: translateY(0);}
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* temp */
 .temp {
-  font-size: 78px;
+  font-size: clamp(54px, 16vw, 78px);
   font-weight: 200;
+  line-height: 1;
 }
 
 /* hourly */
@@ -110,11 +138,18 @@ button {
   overflow-x: auto;
   gap: 12px;
   padding: 10px 0;
+
+  scrollbar-width: none;
+}
+
+.hourly::-webkit-scrollbar{
+  display:none;
 }
 
 .hour {
-  min-width: 75px;
+  min-width: 72px;
   flex-shrink: 0;
+
   background: rgba(255,255,255,0.08);
   border-radius: 14px;
   padding: 10px;
@@ -123,16 +158,52 @@ button {
 /* forecast */
 .day {
   display: grid;
-  grid-template-columns: 50px 1fr 90px;
+  grid-template-columns: 40px 1fr auto;
   align-items: center;
-  padding: 10px 0;
+
+  gap: 10px;
+
+  padding: 12px 0;
   border-bottom: 1px solid rgba(255,255,255,0.15);
+
   text-align: left;
 }
 
 .icon {
   font-size: 22px;
   text-align: center;
+}
+
+/* 📱 mobile */
+@media (max-width: 600px){
+
+  body{
+    align-items:flex-start;
+  }
+
+  .container{
+    padding-top:20px;
+  }
+
+  .search{
+    flex-direction:column;
+  }
+
+  button{
+    width:100%;
+    max-width:420px;
+  }
+
+  .day{
+    grid-template-columns: 32px 1fr auto;
+    font-size:14px;
+  }
+
+  .card{
+    padding:16px;
+    border-radius:20px;
+  }
+
 }
 
 </style>
